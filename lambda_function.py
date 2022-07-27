@@ -54,7 +54,11 @@ class MyHTMLParser(HTMLParser):
 
 def lambda_handler(event, context):
     global EpisodeNumber
-
+    # with boto3.resource('dynamodb').Table('engines').batch_writer() as batch:
+    #     for i in range(3500):
+    #         batch.delete_item(Key={'EpisodeNumber': i})
+    #     return
+    
     with resource('dynamodb').Table('mmwr').batch_writer() as batch:
         for e in json.loads(urlopen('https://tools.cdc.gov/api/v2/resources/media/408549.json').read().decode('UTF-8'))['results']:
             for n,c in enumerate(e['children']):
@@ -67,6 +71,9 @@ def lambda_handler(event, context):
                             ,'Audio': r['resourceUrl'].replace('/','\/')
                         })
         batch.put_item(Item={'EpisodeNumber': 0,'Title': str(count)})
+    #return
+
+
 
     EpisodeNumber=0
     parser = CIDRAPHTMLParser()
@@ -80,7 +87,12 @@ def lambda_handler(event, context):
                 ,'Audio': b[2].replace('/','\/')
             })
         batch.put_item(Item={'EpisodeNumber': 0,'Title': str(EpisodeNumber)})
+     
+    
+    #EpisodeNumber=0
+    #return
 
+    
     parser = MyHTMLParser()
     HTML= urlopen('https://uh.edu/engines/keywords.htm').read().decode('UTF-8')
     HTML = HTML.replace('<em>','').replace('</em>','').replace('<i>','').replace('</i>','')
